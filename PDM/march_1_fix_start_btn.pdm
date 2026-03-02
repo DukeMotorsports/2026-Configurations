@@ -801,19 +801,19 @@
     <Polarity ID="Polarity" Value="0"/>
     <ChannelReference ID="Input" Value="PDM.Constants.True"/>
     <Condition ID="Output">
-     <ChannelReference ID="Output" Value="WIFI.output"/>
+     <ChannelReference ID="Output" Value="Start_LED.output"/>
      <ConditionArray ID="Array"/>
      <Operator ID="Operator" Value="9"/>
      <Text ID="Comment"/>
     </Condition>
-    <ChannelReference ID="Active" Value="WIFI.output.Status.Active"/>
-    <ChannelReference ID="Current" Value="WIFI.output.Current"/>
-    <ChannelReference ID="Voltage" Value="WIFI.output.Voltage"/>
-    <ChannelReference ID="Load" Value="WIFI.output.Load"/>
-    <ChannelReference ID="Status" Value="WIFI.output.Status"/>
-    <ChannelReference ID="OverCurrent" Value="WIFI.output.Status.Over Current"/>
-    <ChannelReference ID="Fault" Value="WIFI.output.Status.Fault"/>
-    <ChannelReference ID="RetriesDone" Value="WIFI.output.Status.Retries Done"/>
+    <ChannelReference ID="Active" Value="Start_LED.output.Status.Active"/>
+    <ChannelReference ID="Current" Value="Start_LED.output.Current"/>
+    <ChannelReference ID="Voltage" Value="Start_LED.output.Voltage"/>
+    <ChannelReference ID="Load" Value="Start_LED.output.Load"/>
+    <ChannelReference ID="Status" Value="Start_LED.output.Status"/>
+    <ChannelReference ID="OverCurrent" Value="Start_LED.output.Status.Over Current"/>
+    <ChannelReference ID="Fault" Value="Start_LED.output.Status.Fault"/>
+    <ChannelReference ID="RetriesDone" Value="Start_LED.output.Status.Retries Done"/>
     <SteppedValue ID="MaxCurrent" Value="6.00000000000000000e+00" StepSize="1.00000000000000000e+00" Units="A" ReservedBits="0" DecimalPlaces="0"/>
     <SteppedValue ID="RetryDelay" Value="1.00000000000000000e+00" StepSize="2.00000000000000004e-02" Units="s" ReservedBits="0" DecimalPlaces="2"/>
     <SteppedValue ID="NumRetries" Value="0.00000000000000000e+00" StepSize="1.00000000000000000e+00" Units="" ReservedBits="0" DecimalPlaces="0"/>
@@ -1591,6 +1591,6 @@
 <![CDATA[DUKE MOTORSPORTS PDM30 - 23513]]>
  </Text>
  <Text ID="ConfigName">
-<![CDATA[ConfigPull_feb24]]>
+<![CDATA[march_1_fix_start_btn]]>
  </Text>
 </Container>
