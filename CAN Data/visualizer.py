@@ -8,78 +8,95 @@ WINDOW = 0.1
 
 line_re = re.compile(r"^\s*([\d.]+)\s+\d+\s+([0-9A-Fa-f]+)\s+\w+\s+d\s+(\d+)")
 
-filename = sys.argv[1]
+BUS_COLORS = ["tab:blue", "tab:orange"]
 
-times = []
-ids = []
-bits_per_window = defaultdict(int)
 
-with open(filename, "r", errors="ignore") as f:
-    for line in f:
-        m = line_re.match(line.strip())
-        if not m:
-            continue
+def parse_file(filename):
+    times = []
+    ids = []
+    bits_per_window = defaultdict(int)
 
-        t, can_id, dlc = m.groups()
-        t = float(t)
-        can_id = can_id.upper()
-        dlc = int(dlc)
+    with open(filename, "r", errors="ignore") as f:
+        for line in f:
+            m = line_re.match(line.strip())
+            if not m:
+                continue
 
-        times.append(t)
-        ids.append(can_id)
+            t, can_id, dlc = m.groups()
+            t = float(t)
+            can_id = can_id.upper()
+            dlc = int(dlc)
 
-        bits = 47 + 8 * dlc
-        bucket = int(t / WINDOW)
-        bits_per_window[bucket] += bits
+            times.append(t)
+            ids.append(can_id)
 
-if not times:
-    print("no can frames found")
+            bits = 47 + 8 * dlc
+            bucket = int(t / WINDOW)
+            bits_per_window[bucket] += bits
+
+    return times, ids, bits_per_window
+
+
+filenames = sys.argv[1:]
+if not filenames:
+    print("usage: visualizer.py <bus1.asc> [bus2.asc ...]")
     raise SystemExit
 
-duration = max(times) - min(times)
-total_messages = len(ids)
-id_counts = Counter(ids)
-
 max_bits_per_window = BITRATE * WINDOW
-x = []
-y = []
 
-for bucket in sorted(bits_per_window):
-    t0 = bucket * WINDOW
-    load = 100 * bits_per_window[bucket] / max_bits_per_window
-    x.append(t0)
-    y.append(load)
+fig_load, ax_load = plt.subplots()
+ax_load.axhline(40, linestyle="--", color="gray", label="40% target")
 
-avg_load = sum(y) / len(y)
-max_load = max(y)
+for filename, color in zip(filenames, BUS_COLORS):
+    times, ids, bits_per_window = parse_file(filename)
 
-print("file:", filename)
-print("total messages:", total_messages)
-print("avg messages/sec:", round(total_messages / duration, 2))
-print("avg bus load:", round(avg_load, 2), "%")
-print("max bus load:", round(max_load, 2), "%")
-print()
+    if not times:
+        print(f"no CAN frames found in {filename}")
+        continue
 
-print("top 5 can ids")
-for can_id, count in id_counts.most_common(5):
-    print(f"{can_id}: {count / duration:.2f} msg/s")
+    duration = max(times) - min(times)
+    total_messages = len(ids)
+    id_counts = Counter(ids)
 
-plt.plot(x, y)
-plt.axhline(40, linestyle="--", label="40% target")
-plt.xlabel("Time (s)")
-plt.ylabel("Bus load (%)")
-plt.title("CAN bus load over time")
-plt.legend()
-plt.show()
+    x = []
+    y = []
+    for bucket in sorted(bits_per_window):
+        t0 = bucket * WINDOW
+        load = 100 * bits_per_window[bucket] / max_bits_per_window
+        x.append(t0)
+        y.append(load)
 
-labels = [can_id for can_id, count in id_counts.most_common()]
-rates = [count / duration for can_id, count in id_counts.most_common()]
+    avg_load = sum(y) / len(y)
+    max_load = max(y)
 
-plt.figure(figsize=(12, 6))
-plt.bar(labels, rates)
-plt.xlabel("CAN ID")
-plt.ylabel("Messages per second")
-plt.title("Message rate by CAN ID")
-plt.xticks(rotation=90)
-plt.tight_layout()
+    label = filename.split("/")[-1]
+    ax_load.plot(x, y, color=color, label=label)
+
+    print(f"file: {filename}")
+    print(f"  total messages: {total_messages}")
+    print(f"  avg messages/sec: {round(total_messages / duration, 2)}")
+    print(f"  avg bus load: {round(avg_load, 2)} %")
+    print(f"  max bus load: {round(max_load, 2)} %")
+    print()
+    print(f"  top 5 CAN IDs:")
+    for can_id, count in id_counts.most_common(5):
+        print(f"    {can_id}: {count / duration:.2f} msg/s")
+    print()
+
+    # Per-file message rate bar chart
+    bar_labels = [can_id for can_id, count in id_counts.most_common()]
+    rates = [count / duration for can_id, count in id_counts.most_common()]
+
+    fig_bar, ax_bar = plt.subplots(figsize=(12, 6))
+    ax_bar.bar(bar_labels, rates, color=color)
+    ax_bar.set_xlabel("CAN ID")
+    ax_bar.set_ylabel("Messages per second")
+    ax_bar.set_title(f"Message rate by CAN ID — {label}")
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+
+ax_load.set_xlabel("Time (s)")
+ax_load.set_ylabel("Bus load (%)")
+ax_load.set_title("CAN bus load over time")
+ax_load.legend()
 plt.show()
